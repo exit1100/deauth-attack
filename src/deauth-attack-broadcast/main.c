@@ -41,8 +41,8 @@ void monitor(char *dev){    //랜카드 모니터 모드 설정
 
 
 void usage(){
-    printf("syntax: beaconFlooding <interface> <AP_ListFile>\n");
-    printf("sample: beaconFlooding wlan0 AP_List.txt\n");
+    printf("syntax: deauth-attack-broadcast <interface> <AP_ListFile>\n");
+    printf("sample: deauth-attack-broadcast wlan0 AP_List.txt\n");
 }
 
 

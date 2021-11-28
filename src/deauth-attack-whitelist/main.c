@@ -44,8 +44,8 @@ void monitor(char *dev){    //랜카드 모니터 모드 설정
 
 
 void usage(){
-    printf("syntax: beaconFlooding <interface> <ap mac> <station_mac_list> <white_list>\n");
-    printf("sample: beaconFlooding wlan0 AA:BB:CC:DD:EE:FF station_mac.txt white_list.txt  \n");
+    printf("syntax: deauth-attack-whitelist <interface> <ap mac> <station_mac_list> <white_list>\n");
+    printf("sample: deauth-attack-whitelist wlan0 AA:BB:CC:DD:EE:FF station_mac.txt white_list.txt  \n");
 }
 
 void *station_mac(void *arg) {
