@@ -9,7 +9,7 @@ AP 목록파일에 저장된 AP에 연결된 모든 station의 연결을 해제�
 ex) ./deauth-attack-broadcast wlan0 AP_List.txt <br><br>
 
 # deauth-attack-whitelist
-한개의 AP에 대해 허용할 기기의 MAC 주소를 제외한 주변의 모든 기기들만 연결을 해제한다. <br>
+한 개의 AP에 대해 허용할 기기의 MAC 주소를 제외한 주변의 모든 기기들만 연결을 해제한다. <br>
 내가 지정한 기기의 MAC 주소를 파일로 저장(whitelist)하여 저장된 기기만 연결을 유지하고 나머지 주변 모든 기기들은 AP와의 연결을 해제 시킬 수 있다. <br><br>
 사용방법 : [프로그램 경로] [인터페이스 이름] [AP MAC 주소] [AP와 연결을 끊을 station MAC 주소] [허용할 station MAC 주소] <br>
 ex) ./deauth-attack-whitelist wlan0 AA:BB:CC:DD:EE:FF station_mac.txt white_list.txt <br><br>
