@@ -15,4 +15,9 @@ ex) ./deauth-attack-broadcast wlan0 AP_List.txt <br><br>
 내가 지정한 기기의 MAC 주소를 파일로 저장(whitelist)하여 저장된 기기만 연결을 유지하고 나머지 주변 모든 기기들은 AP와의 연결을 해제 시킬 수 있다. <br><br>
 사용방법 : [프로그램 경로] [인터페이스 이름] [AP MAC 주소] [AP와 연결을 끊을 station MAC 주소] [허용할 station MAC 주소] <br>
 ex) ./deauth-attack-whitelist wlan0 AA:BB:CC:DD:EE:FF station_mac.txt white_list.txt <br><br>
-
+<img width="635" alt="22" src="https://user-images.githubusercontent.com/85146195/143770499-7e6e61d0-74dc-423e-91dc-7b2ccae77444.png">
+<br><br>
+허용 시킬 station MAC 주소는 txt파일로 저장하고, 연결을 해제하는 station MAC 주소는 프로그램이 실행된 상태에서 probe request 패킷을 동적으로 수집하여 주변 기기의 MAC 주소를 수집한다.<br>
+각 txt파일 속의 MAC 주소는 아래 그림과 같이 입력하면 되고, 마지막 MAC 주소 뒤에 줄바꿈을 꼭 추가해주어야 한다.<br><br>
+<img width="241" alt="33" src="https://user-images.githubusercontent.com/85146195/143770759-98c576e8-2636-47ba-865f-4e26d1f13e8b.png">
+>
