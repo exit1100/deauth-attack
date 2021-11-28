@@ -7,6 +7,8 @@ AP 목록파일에 저장된 AP에 연결된 모든 station의 연결을 해제�
 출발지는 AP의 MAC 주소, 목적지는 broadcast(FF:FF:FF:FF:FF:FF)로 만들어진 가짜 인증 해제 패킷을 날려 특정 AP에 연결된 모든 기기들의 연결을 해제 시킬 수 있다. <br><br>
 사용방법 : [프로그램 경로] [인터페이스 이름] [AP 목록파일 경로] <br>
 ex) ./deauth-attack-broadcast wlan0 AP_List.txt <br><br>
+<img width="472" alt="11" src="https://user-images.githubusercontent.com/85146195/143769949-63fd0bef-8d03-406b-b8b6-f9976ea08745.png">
+
 
 # deauth-attack-whitelist
 한 개의 AP에 대해 허용할 기기의 MAC 주소를 제외한 주변의 모든 기기들만 연결을 해제한다. <br>
