@@ -149,6 +149,7 @@ int main(int argc, char* argv[]) {
     char * dev = argv[1];
     char * ap_mac = argv[2];
     char * bssidFile = argv[3];
+    int num=0;
 
     struct multiargs multiarg;
     multiarg.dev = argv[1];
@@ -241,10 +242,10 @@ int main(int argc, char* argv[]) {
             printf("Fail sendpacket 2\n");
             exit (-1);
         }
-
-        printf(" [BSSID]: %02x:%02x:%02x:%02x:%02x:%02x | Deauth Dos Attack!! | send packet!\n",beacon2.becon.bssid[0],beacon2.becon.bssid[1],beacon2.becon.bssid[2]
-                                                                                               ,beacon2.becon.bssid[3],beacon2.becon.bssid[4],beacon2.becon.bssid[5]);
-        usleep(100);
+        num++;
+        printf("%5d | [AP] %s <-> [station] %02x:%02x:%02x:%02x:%02x:%02x | Deauth Packet!\n",num, ap_mac, beacon2.becon.bssid[0],beacon2.becon.bssid[1],beacon2.becon.bssid[2]
+                                                                                                              ,beacon2.becon.bssid[3],beacon2.becon.bssid[4],beacon2.becon.bssid[5]);
+        usleep(1000);
     }
     fclose(pFile);
     pcap_close(pcap);

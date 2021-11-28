@@ -114,7 +114,7 @@ int main(int argc, char* argv[]) {
         num++;
         printf("%5d | [AP] %02x:%02x:%02x:%02x:%02x:%02x -> [Broadcast] FF:FF:FF:FF:FF:FF | Deauth Packet!\n",num ,beacon.becon.bssid[0],beacon.becon.bssid[1],beacon.becon.bssid[2]
                                                                                                               ,beacon.becon.bssid[3],beacon.becon.bssid[4],beacon.becon.bssid[5]);
-        usleep(10000);
+        usleep(1000);
     }
     fclose(pFile);
     pcap_close(pcap);
