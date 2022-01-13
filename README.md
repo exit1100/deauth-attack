@@ -21,3 +21,11 @@ ex) ./deauth-attack-whitelist wlan0 AA:BB:CC:DD:EE:FF station_mac.txt white_list
 각 txt파일 속의 MAC 주소는 아래 그림과 같이 입력하면 되고, 마지막 MAC 주소 뒤에 줄바꿈을 꼭 추가해주어야 한다.<br><br>
 <img width="241" alt="33" src="https://user-images.githubusercontent.com/85146195/143770759-98c576e8-2636-47ba-865f-4e26d1f13e8b.png">
 >
+
+
+# deauth-attack-all
+주변에 검색되는 모든 AP에 연결할 수 없다. <br>
+비콘프레임의 MAC 주소를 수집하여 출발지 MAC으로 설정하고, broadcast(FF:FF:FF:FF:FF:FF)로 인증 해제 패킷을 날린다.<br><br>
+사용방법 : [프로그램 경로] [인터페이스 이름]<br>
+ex) ./deauth-attack-all wlan0 <br><br>
+<img width="476" alt="aa" src="https://user-images.githubusercontent.com/85146195/149347761-4636fe2f-fd6b-46fb-b71a-6966571b5dc8.png">
