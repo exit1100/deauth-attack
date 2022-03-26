@@ -19,8 +19,8 @@ ex) ./deauth-attack-whitelist wlan0 AA:BB:CC:DD:EE:FF station_mac.txt white_list
 <br><br>
 허용 시킬 station MAC 주소는 txt파일로 저장하고, 연결을 해제하는 station MAC 주소는 프로그램이 실행된 상태에서 probe request 패킷을 동적으로 수집하여 주변 기기의 MAC 주소를 수집한다.<br>
 각 txt파일 속의 MAC 주소는 아래 그림과 같이 입력하면 되고, 마지막 MAC 주소 뒤에 줄바꿈을 꼭 추가해주어야 한다.<br><br>
-<img width="241" alt="33" src="https://user-images.githubusercontent.com/85146195/143770759-98c576e8-2636-47ba-865f-4e26d1f13e8b.png">
->
+<img width="241" alt="33" src="https://user-images.githubusercontent.com/85146195/143770759-98c576e8-2636-47ba-865f-4e26d1f13e8b.png"><br>
+주변의 AP 기기의 MAC주소 스캔 : https://github.com/exit1100/beacon_frame_capture -> beacon_frame_wifilist
 
 
 # deauth-attack-all
