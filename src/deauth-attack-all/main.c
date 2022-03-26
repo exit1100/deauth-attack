@@ -48,8 +48,22 @@ void usage(){
     printf("sample: deauth-attack-all wlan0\n");
 }
 
+void* thread_channel(void * dev){   //모든 채널의 와이파이 패킷을 받기 위해 3초마다 채널을 변경
+    int cnt = 1;
+    while(1){
+            char command[100];
+            if (cnt>13) cnt=1;
+            sprintf(command, "iwconfig %s ch %d", (char *)dev, cnt);
+            system(command);
+            printf(" [*] Channel Change : %d\n",cnt++);
+            sleep(3);
+    }
+    printf("Thread 2 Die!!\n");
+}
+
 void *ap_mac(void *dev) {
     char errbuf[PCAP_ERRBUF_SIZE];
+
     pcap_t* pcap2 = pcap_open_live((char *)dev , BUFSIZ, 1, 1000, errbuf);
     if (pcap2 == NULL) {
         fprintf(stderr, "pcap_open_live(%s) return null - %s\n", (char *)dev, errbuf);
@@ -113,7 +127,7 @@ void *ap_mac(void *dev) {
         usleep(10);
     }
     pcap_close(pcap2);
-    printf("Thread 2 Die!!\n");
+    printf("Thread 1 Die!!\n");
 }
 
 
@@ -131,12 +145,15 @@ int main(int argc, char* argv[]) {
 
     monitor(dev);
 
-    FILE* pFile0 = fopen("ap_mac.txt", "ab");
+    FILE* pFile0 = fopen("ap_mac.txt", "wb");
     fclose(pFile0);
     printf("Create 'ap_mac.txt' File!\n");
 
     pthread_t thread;
     pthread_create(&thread, 0, ap_mac, (void *) dev);
+    pthread_t thread2;
+    pthread_create(&thread2, 0, thread_channel, (void *) dev);
+
     pcap_t* pcap = pcap_open_live(dev , BUFSIZ, 1, 1000, errbuf);
     if (pcap == NULL) {
         fprintf(stderr, "pcap_open_live(%s) return null - %s\n", dev, errbuf);
