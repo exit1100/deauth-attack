@@ -5,7 +5,7 @@ CONFIG -= qt
 LIBS += -lpcap \
     -lpthread
 
-SOURCES += main.cpp \
-    beacon.cpp \
+SOURCES += main.c \
+    beacon.c \
 
 HEADERS +=
