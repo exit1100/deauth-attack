@@ -11,6 +11,10 @@
 	--all : 주변의 모든 AP와 모든 station을 연결 해제시키는 옵션<br></pre>
 <img width="635" alt="22" src="https://user-images.githubusercontent.com/85146195/143770499-7e6e61d0-74dc-423e-91dc-7b2ccae77444.png"><br>
 <br>
+<h2> mac 주소를 담는 txt 파일 형식 </h2>
+![1](https://user-images.githubusercontent.com/85146195/215759896-b083c2b5-bb23-4738-98b8-1ecfb069dbc1.png)
+
+
 <h2>death attack broadcast</h2>
 <pre>sample [1]: deauth-attack wlan0 -apList AP_list.txt <br></pre>
 AP 목록파일에 저장된 AP에 연결된 모든 station의 연결을 해제한다. <br>
