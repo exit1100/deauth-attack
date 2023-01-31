@@ -54,19 +54,14 @@ unsigned char * dump_beacon_header(struct IEEE_802dot11 *beacon_header)
 {
     unsigned int frameControl = htons(beacon_header->frame_control);
     unsigned char *smac = beacon_header->shost;
-    //unsigned char *dmac = beacon_header->dhost;
-    //unsigned char *bssid = beacon_header->bssid;
-    if (frameControl==0x4000){
-    /*printf("[FrameControl] : 0x%04x\n", frameControl);
-    printf("[BEACON] : "\
-        "%02x:%02x:%02x:%02x:%02x:%02x -> "\
-        "%02x:%02x:%02x:%02x:%02x:%02x\n"\
-        "[bssID] : %02x:%02x:%02x:%02x:%02x:%02x\n",
-        smac[0], smac[1], smac[2], smac[3], smac[4], smac[5],
-        dmac[0], dmac[1], dmac[2], dmac[3], dmac[4], dmac[5],
-        bssid[0], bssid[1], bssid[2], bssid[3], bssid[4], bssid[5]);*/
-        return smac;
-    }
+    if (frameControl==0x4000) return smac;
     return NULL;
 }
 
+unsigned char * dump_probe_request(struct IEEE_802dot11 *beacon_header)
+{
+    unsigned int frameControl = htons(beacon_header->frame_control);
+    unsigned char *smac = beacon_header->shost;
+    if (frameControl==0x8000) return smac;
+    return NULL;
+}

