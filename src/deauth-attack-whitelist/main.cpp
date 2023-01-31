@@ -12,20 +12,19 @@
 
 int death_Particular_flag = 0, death_all_flag = 0, death_ap_flag = 0, death_stationList_flag = 0, death_whiteList_flag = 0;
 
-void usage(int argc, char* argv[]){
+void usage(){
         printf("syntax: deauth-attack-whitelist <interface> -ap <ap mac> -stationList <station_mac_list> -whiteList <white_list>\n");
         printf("sample: deauth-attack-whitelist wlan0 -ap AA:BB:CC:DD:EE:FF -stationList station_mac.txt -whiteList white_list.txt  \n");
 }
 
 void init_setting(int argc, char* argv[]){
     for(int i=1; i < argc; i++){
-        if(argv[i]=='--all') death_all_flag = i;
-        if(argv[i]=='-apList') death_Particular_flag = i;     
-        if(argv[i]=='-ap') death_ap_flag = i;
-        if(argv[i]=='-stationList') death_stationList_flag = i;
-        if(argv[i]=='-whiteList') death_whiteList_flag = i;
+        if(strcmp(argv[i],"--all")==0) death_all_flag = i;
+        if(strcmp(argv[i], "-apList")==0) death_Particular_flag = i;
+        if(strcmp(argv[i], "-ap")==0) death_ap_flag = i;
+        if(strcmp(argv[i], "-stationList")==0) death_stationList_flag = i;
+        if(strcmp(argv[i], "-whiteList")==0) death_whiteList_flag = i;
     }
-
 }
 
 
@@ -56,7 +55,7 @@ bool ConvertMacAddrStr2Array(const char *mac_addr_str, uint8_t mac_addr[MAC_ALEN
 
 
 void *station_mac(void *arg) {
-    struct multiargs *data = arg;
+    struct multiargs *data = (struct multiargs *)arg;
     char errbuf[PCAP_ERRBUF_SIZE];
     pcap_t* pcap2 = pcap_open_live((char *)data->dev , BUFSIZ, 1, 1000, errbuf);
     if (pcap2 == NULL) {
@@ -78,7 +77,7 @@ void *station_mac(void *arg) {
         }
         radiotap_len = dump_radiotap((struct radiotap_header *)packet);
         packet += radiotap_len;
-        smac = dump_beacon_header((struct beacon_header *)packet);
+        smac = dump_beacon_header((struct IEEE_802dot11 *)packet);
 
         if (smac != NULL){
             char mac[20];
@@ -148,7 +147,7 @@ void *station_mac(void *arg) {
 int main(int argc, char* argv[]) {
     init_setting(argc, argv);
 
-    int type = 0
+    int type = 0;
     if(argc==4) type = 1;
     else if(argc==8) type = 2;
     else if(argc==3) type = 3;
@@ -162,14 +161,15 @@ int main(int argc, char* argv[]) {
     int num=0;
     uint8_t macAddr[MAC_ALEN];
 
-    if(death_Particular_flag != 0) char * ap_list = argv[death_Particular_flag + 1];
-    
+    char * ap_mac, *stationFile;
+
+    //if(death_Particular_flag != 0) char * ap_list = argv[death_Particular_flag + 1];
     //if(death_whiteList_flag != 0) char * whiteFile = argv[death_whiteList_flag + 1];
     //if(death_all_flag != 0) char * ap_list = argv[death_all_flag + 1];
 
     if (type==2){
-        if(death_ap_flag != 0) char * ap_mac = argv[death_ap_flag + 1];
-        if(death_stationList_flag != 0) char * stationFile = argv[death_stationList_flag + 1];
+        if(death_ap_flag != 0) ap_mac = argv[death_ap_flag + 1];
+        if(death_stationList_flag != 0) stationFile = argv[death_stationList_flag + 1];
         struct multiargs multiarg;
         multiarg.dev = argv[1];
         multiarg.station_mac_list = argv[death_stationList_flag + 1];

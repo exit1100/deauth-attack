@@ -51,7 +51,7 @@ int dump_radiotap(struct radiotap_header *radiotap_header){
     return len;
 }
 
-unsigned char * dump_beacon_header(struct beacon_header *beacon_header)
+unsigned char * dump_beacon_header(struct IEEE_802dot11 *beacon_header)
 {
     unsigned int frameControl = htons(beacon_header->frame_control);
     unsigned char *smac = beacon_header->shost;
