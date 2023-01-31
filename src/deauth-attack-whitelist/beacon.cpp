@@ -1,7 +1,6 @@
 #include <stdio.h>
 #include <stdint.h>
 #include <arpa/inet.h>
-#define NULL 0x00
 
 struct radiotap_header {
     uint8_t     version = 0x00;     /* set to 0 */

@@ -6,7 +6,7 @@
 #include <unistd.h>
 #include <string.h>
 #include "beacon.cpp"
-#define NULL 0x00
+
 #define MAC_ALEN 6
 #define MAC_ADDR_STR_LEN 17
 
@@ -118,7 +118,7 @@ void *ap_mac(void *dev) {
 
         radiotap_len = dump_radiotap((struct radiotap_header *)packet);
         packet += radiotap_len;
-        smac = dump_beacon_header((struct beacon_header *)packet);
+        smac = dump_beacon_header((struct IEEE_802dot11 *)packet);
 
         if (smac != NULL){
             char mac[20];
@@ -190,8 +190,6 @@ void *station_mac(void *arg) {
         if (smac == NULL) continue;
         
         char mac[20] = {0,};
-        char strTemp2[20] = {0,};
-        char strTemp3[20] = {0,};
         int flag =0;
 
         sprintf(mac, "%02x:%02x:%02x:%02x:%02x:%02x\n",smac[0], smac[1], smac[2], smac[3], smac[4], smac[5]);
