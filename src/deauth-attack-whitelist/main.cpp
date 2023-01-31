@@ -252,6 +252,7 @@ int main(int argc, char* argv[]) {
     int num=0;
     uint8_t macAddr[MAC_ALEN];
     char *ap_macAddr, *stationFile;
+    FILE* pFile;
 
     monitor(dev);
 
@@ -272,7 +273,7 @@ int main(int argc, char* argv[]) {
         multiarg.white_list = argv[death_whiteList_flag + 1];
         pthread_t thread;
         pthread_create(&thread, 0, station_mac, (void *)&multiarg);
-        FILE* pFile = fopen(stationFile, "rb");
+        pFile = fopen(stationFile, "rb");
         if (pFile == NULL){
             printf("File not Found!\n");
             exit(0);
@@ -287,15 +288,15 @@ int main(int argc, char* argv[]) {
         memcpy(beacon_s2a.becon.dhost, macAddr, 6);
 
     } else if(type==3){
-        FILE* pFile0 = fopen("ap_mac.txt", "wb"); //Create 'ap_mac.txt' File!
-        fclose(pFile0);
+        FILE* pFile = fopen("ap_mac.txt", "wb"); //Create 'ap_mac.txt' File!
+        fclose(pFile);
 
         pthread_t thread;
         pthread_create(&thread, 0, ap_mac, (void *) dev);
         pthread_t thread2;
         pthread_create(&thread2, 0, thread_channel, (void *) dev);
 
-        FILE* pFile = fopen("ap_mac.txt", "rb");
+        pFile = fopen("ap_mac.txt", "rb");
 
         memset(beacon_a2s.becon.dhost,0xff,sizeof(uint8_t)*6);
     }
