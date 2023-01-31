@@ -5,7 +5,7 @@
 # deauth-attack
 <pre>syntax: deauth-attack <interface> [-apList <ap_mac_list.txt>] [-ap <ap mac> -stationList <station_mac_list> -whiteList <white_list>] [--all] <br>
 	-apList : AP mac 주소를 적어놓은 txt 파일<br>
-	-ap : 하나의 AP 주소<br>
+	-ap : 공격할 AP의 mac 주소 <br>
 	-stationList : station(AP와 연결되는 주변 기기)의 주소를 적어놓은 txt 파일<br>
 	-whiteList : AP와 연결을 해제시키지 않을 mac주소를 적어놓은 txt 파일<br>
 	--all : 주변의 모든 AP와 모든 station을 연결 해제시키는 옵션<br></pre>
