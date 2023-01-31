@@ -10,19 +10,20 @@
 #define MAC_ALEN 6
 #define MAC_ADDR_STR_LEN 17
 
-int death_Particular_flag = 0, death_all_flag = 0, death_whiteList_ap_flag = 0, death_whiteList_station_flag = 0;
+int death_Particular_flag = 0, death_all_flag = 0, death_ap_flag = 0, death_stationList_flag = 0, death_whiteList_flag = 0;
 
 void usage(int argc, char* argv[]){
-        printf("syntax: deauth-attack-whitelist <interface> <ap mac> <station_mac_list> <white_list>\n");
-        printf("sample: deauth-attack-whitelist wlan0 AA:BB:CC:DD:EE:FF station_mac.txt white_list.txt  \n");
+        printf("syntax: deauth-attack-whitelist <interface> -ap <ap mac> -stationList <station_mac_list> -whiteList <white_list>\n");
+        printf("sample: deauth-attack-whitelist wlan0 -ap AA:BB:CC:DD:EE:FF -stationList station_mac.txt -whiteList white_list.txt  \n");
 }
 
 void init_setting(int argc, char* argv[]){
     for(int i=1; i < argc; i++){
-        if(argv[i]=='--all') death_all_flag = 1;
-        if(argv[i]=='-apList') death_Particular_flag = 1;     
-        if(argv[i]=='-ap') death_whiteList_ap_flag = 1;
-        if(argv[i]=='-stationList') death_whiteList_station_flag = 1;
+        if(argv[i]=='--all') death_all_flag = i;
+        if(argv[i]=='-apList') death_Particular_flag = i;     
+        if(argv[i]=='-ap') death_ap_flag = i;
+        if(argv[i]=='-stationList') death_stationList_flag = i;
+        if(argv[i]=='-whiteList') death_whiteList_flag = i;
     }
 
 }
@@ -38,19 +39,19 @@ void monitor(char * dev){ // 랜카드 모니터 모드로 변경 함수
     system(command);
 }
 
-int ConvertMacAddrStr2Array(const char *mac_addr_str, uint8_t mac_addr[MAC_ALEN]){
+bool ConvertMacAddrStr2Array(const char *mac_addr_str, uint8_t mac_addr[MAC_ALEN]){
     int res, i ,val;
     char temp[MAC_ADDR_STR_LEN+1];
-    if(strlen(mac_addr_str) != MAC_ADDR_STR_LEN) return -1;
+    if(strlen(mac_addr_str) != MAC_ADDR_STR_LEN) return true;
     memcpy(temp, mac_addr_str, MAC_ADDR_STR_LEN);
     temp[MAC_ADDR_STR_LEN] = 0x00;
     for(i = 0; i < MAC_ALEN; i++){
         temp[(3*i)+2] = '\0';
         res = sscanf((const char *)&temp[3*i], "%x", &val);
-        if(res==0) return -1;
+        if(res==0) return true;
         mac_addr[i] = (char)val;
     }
-    return 0;
+    return false;
 }
 
 
@@ -142,22 +143,48 @@ void *station_mac(void *arg) {
 }
 
 
-int death_whitelist(){
+
+
+int main(int argc, char* argv[]) {
+    init_setting(argc, argv);
+
+    int type = 0
+    if(argc==4) type = 1;
+    else if(argc==8) type = 2;
+    else if(argc==3) type = 3;
+    if (type == 0){
+        usage();
+        return -1;
+    }
+
     char errbuf[PCAP_ERRBUF_SIZE];
     char * dev = argv[1];
-    char * ap_mac = argv[2];
-    char * bssidFile = argv[3];
     int num=0;
-
-    struct multiargs multiarg;
-    multiarg.dev = argv[1];
-    multiarg.station_mac_list = argv[3];
-    multiarg.white_list = argv[4];
-
     uint8_t macAddr[MAC_ALEN];
-   
-    pthread_t thread;
-    pthread_create(&thread, 0, station_mac, (void *)&multiarg);
+
+    if(death_Particular_flag != 0) char * ap_list = argv[death_Particular_flag + 1];
+    
+    //if(death_whiteList_flag != 0) char * whiteFile = argv[death_whiteList_flag + 1];
+    //if(death_all_flag != 0) char * ap_list = argv[death_all_flag + 1];
+
+    if (type==2){
+        if(death_ap_flag != 0) char * ap_mac = argv[death_ap_flag + 1];
+        if(death_stationList_flag != 0) char * stationFile = argv[death_stationList_flag + 1];
+        struct multiargs multiarg;
+        multiarg.dev = argv[1];
+        multiarg.station_mac_list = argv[death_stationList_flag + 1];
+        multiarg.white_list = argv[death_whiteList_flag + 1];
+        pthread_t thread;
+        pthread_create(&thread, 0, station_mac, (void *)&multiarg);
+    }
+
+    if(strlen(dev)>30){
+        printf("interface name length less than 30 characters");
+        return -1;
+    }
+    monitor(dev);
+
+
 
     pcap_t* pcap = pcap_open_live(dev , BUFSIZ, 1, 1000, errbuf);
     if (pcap == NULL) {
@@ -165,7 +192,7 @@ int death_whitelist(){
         return -1;
     }
 
-    FILE* pFile = fopen(bssidFile, "rb");
+    FILE* pFile = fopen(stationFile, "rb");
     if (pFile == NULL){
         printf("File not Found!\n");
         exit(0);
@@ -175,8 +202,8 @@ int death_whitelist(){
     struct beacon_frame beacon;
     struct beacon_frame beacon2;
 
-    int ret = ConvertMacAddrStr2Array(ap_mac, macAddr);
-    if (ret){
+
+    if (ConvertMacAddrStr2Array(ap_mac, macAddr)){
         printf("Fail to convert MAC address 1\n");
         return -1;
     }
@@ -186,8 +213,7 @@ int death_whitelist(){
 
 
     while (1) {
-        char strTemp[20];
-        memset(strTemp,0x00,20);
+        char strTemp[20] = {0, };
 
         if(!feof(pFile)) fgets(strTemp, sizeof(strTemp),pFile);
         else fseek(pFile,0,SEEK_SET);
@@ -198,8 +224,7 @@ int death_whitelist(){
         if (strTemp[strlen(strTemp)-1] == 0x0d) strTemp[strlen(strTemp)-1] = 0x00;
         if (strTemp[strlen(strTemp)-1] == 0x0a) strTemp[strlen(strTemp)-1] = 0x00;
 
-        int ret = ConvertMacAddrStr2Array(strTemp, macAddr);
-        if (ret){
+        if (ConvertMacAddrStr2Array(strTemp, macAddr)){
             printf("Fail to convert MAC address 2\n");
             return -1;
         }
@@ -225,32 +250,4 @@ int death_whitelist(){
     }
     fclose(pFile);
     pcap_close(pcap);
-
-}
-
-
-
-
-
-int main(int argc, char* argv[]) {
-    int type = 0
-    init_setting(argc, argv);
-
-    if(argc==4) type = 1;
-    else if(argc==8) type = 2;
-    else if(argc==3) type = 3;
-    
-    if (type == 0){
-        usage();
-        return -1;
-    }
-
-    if(strlen(dev)>30){
-        printf("interface name length less than 30 characters");
-        return -1;
-    }
-    monitor(dev);
-
-
-
 }
