@@ -120,42 +120,41 @@ void *ap_mac(void *dev) {
         packet += radiotap_len;
         smac = dump_beacon_header((struct IEEE_802dot11 *)packet);
 
-        if (smac != NULL){
-            char mac[20];
-            char strTemp2[20];
-            int flag=0;
+        if (smac == NULL) continue;
+        char mac[20];
+        char strTemp2[20];
+        int flag=0;
+        sprintf(mac, "%02x:%02x:%02x:%02x:%02x:%02x\n",smac[0], smac[1], smac[2], smac[3], smac[4], smac[5]);
 
-            sprintf(mac, "%02x:%02x:%02x:%02x:%02x:%02x\n",smac[0], smac[1], smac[2], smac[3], smac[4], smac[5]);
-            //printf("mac : %s\n",mac);
 
-            FILE* pFile = fopen("ap_mac.txt", "rb");
-            if (pFile == NULL){
-                printf("File not Found 1!\n");
+        FILE* pFile = fopen("ap_mac.txt", "rb");
+        if (pFile == NULL){
+            printf("File not Found 1!\n");
+            exit(0);
+        }
+        while(!feof(pFile)){
+            fgets(strTemp2, sizeof(strTemp2),pFile);
+            if(strcmp(mac, strTemp2)==0){
+                flag = 1;
+                break;
+            }
+
+        }
+        fclose(pFile);
+
+        if(flag == 0){
+            FILE* pFile2 = fopen("ap_mac.txt", "ab");
+            if (pFile2 == NULL){
+                printf("File not Found 2!\n");
                 exit(0);
             }
-            while(!feof(pFile)){
-                fgets(strTemp2, sizeof(strTemp2),pFile);
-                if(strcmp(mac, strTemp2)==0){
-                    flag = 1;
-                    break;
-                }
-
+            if(fputs(mac, pFile2) != EOF){
+                //printf("ADD MAC ADDR : %s\n", mac);
+                fseek(pFile,0,SEEK_SET);
             }
-            fclose(pFile);
-
-            if(flag == 0){
-                FILE* pFile2 = fopen("ap_mac.txt", "ab");
-                if (pFile2 == NULL){
-                    printf("File not Found 2!\n");
-                    exit(0);
-                }
-                if(fputs(mac, pFile2) != EOF){
-                    //printf("ADD MAC ADDR : %s\n", mac);
-                    fseek(pFile,0,SEEK_SET);
-                }
-                fclose(pFile2);
-            }
+            fclose(pFile2);
         }
+        
 
         usleep(10);
     }
@@ -291,11 +290,10 @@ int main(int argc, char* argv[]) {
 
         pthread_t thread;
         pthread_create(&thread, 0, ap_mac, (void *) dev);
-        pthread_t thread2;
-        pthread_create(&thread2, 0, thread_channel, (void *) dev);
+        //pthread_t thread2;
+        //pthread_create(&thread2, 0, thread_channel, (void *) dev);
 
         pFile = fopen("ap_mac.txt", "rb");
-
         memset(beacon_a2s.becon.dhost,0xff,sizeof(uint8_t)*6);
     }
 
